@@ -1,0 +1,63 @@
+.header-parent
+{
+    
+    top:10px;
+    position: static;
+    margin-left:auto;
+    margin-right:auto;
+    float:center;
+    
+}
+
+
+.header-first-row, .header-second-row, .header-third-row
+{
+    
+    text-align:center;
+    float:center;
+    background-color:Yellow;
+    
+    margin-left:auto;
+    margin-right:auto;
+    top:10px;
+	left:10px;
+}
+
+.header-second-row
+{
+
+   width:1310px;
+   height:980px;
+   float:center;
+   background-color:Grey;
+}
+
+.header-child-row-one, .header-child-row-two
+{
+	position: relative;
+    float:left;
+    width: 640px;
+    height: 480px;
+    margin-top:10px;
+	margin-left:10px;
+}
+
+.header-cell
+{
+	float:center;
+	
+	top:10px;
+	left:10px;
+    
+}
+
+#pointcloud_image {
+    background-color:Red;
+    width: 640px;
+    height: 480px;
+   /* margin: 100px;*/
+    padding: 0px;
+    position: static; /* fixed or static */
+    top: 10px;
+    left: 10px;
+}

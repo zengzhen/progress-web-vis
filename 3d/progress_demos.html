@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <script type="text/javascript" src="js/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="js/roslib.min.js"></script>    
+    
+    <script src="js/three.min.js.76"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/stats.min.js"></script>
+    <script src="js/require.js"></script>
+    <script src="js/dat.gui.min.js"></script>
+    <script src="js/kineval_matrix.js"></script>
+    <script src="js/kineval_quaternion.js"></script>
+    
+
+    <link rel="stylesheet" href="demo/style.css">
+    
+    <script src="demo/init_params.js"></script> 
+    <script src="demo/init_rosbridge.js"></script>
+    <script src="demo/init_canvas_point_cloud.js"></script>
+    <script src="demo/init_canvas_occupancy_grid.js"></script>
+    <script src="demo/init_websocket.js"></script>
+    <script src="demo/occupancy_grid.js"></script>
+    
+    <title>Progress Demos</title>
+    
+    <script>
+    window.onload=function(){
+        init();  // setup the spring simulation
+    }
+
+    // the init function is called first to setup the spring simulation
+    function init() {
+        init_params();
+        init_canvas_point_cloud();
+        init_canvas_occupancy_grid();
+        init_rosbridge();
+        init_websocket();
+        
+        document.addEventListener('keydown', function(e) {handleKeydown(e.keyCode); }, true);   
+        
+//         animate();
+    }
+    
+//     function animate() {     
+// 
+//         // the requestAnimationFrame function requests that the animate function
+//         //   be called again in the near future
+//         requestAnimationFrame(animate);
+//         
+//         render();
+//         stats.update();
+//     }
+
+    </script>
+
+</head>
+
+<!--<body>
+    <div style="position: relative;">
+            
+        <canvas id="lpm_layer" width="1500" height="1500"
+        style="position: absolute; left: 0px; top: 100px; z-index: 1;"></canvas>
+        
+    </div>
+</body>-->
+
+</html>
