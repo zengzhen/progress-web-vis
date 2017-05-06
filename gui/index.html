@@ -17,6 +17,8 @@ robots_folders_root = [];
 
 robot_focus = 0;
 
+term = ['Welcome to ProgressVis','> '];
+
 window.onload = function() {
 
   gui = new dat.GUI();
@@ -32,6 +34,35 @@ window.onload = function() {
   //gui2 = new dat.GUI({ autoPlace: false });
   //gui2.add(context, 'addTopic');
   //gui2.add(context, 'addRobot');
+
+  domject = document.getElementById("progressterm");
+  domject.style.top = window.innerHeight-100;
+
+  //context.initKeyEvents = function () {
+    document.addEventListener('keydown', function(e) {context.handleKeydown(e); }, true);
+  // }
+
+  context.handleKeydown = function(e) {
+    if (e.keyCode === 13) {
+      //document.getElementById("progressterm").innerHTML += "<br>";
+      term[term.length] = '> ';
+    }
+    else if (e.keyCode === 8) {
+      //document.getElementById("progressterm").innerHTML += "<br>";
+      term[term.length-1] = term[term.length-1].substring(0,term[term.length-1].length-1);
+    }
+    else if ((e.keyCode !== 32 )&&(e.keyCode < 47)) { }
+    else {
+      //document.getElementById("progressterm").innerHTML += e.keyCode;
+      //document.getElementById("progressterm").innerHTML += e.key;
+      term[term.length-1] = term[term.length-1] + e.key;
+      //term[term.length-1] += e.keyCode;
+    }
+    document.getElementById("progressterm").innerHTML='';
+    for(var i=term.length-1;i>0;i--) {
+      document.getElementById("progressterm").innerHTML += term[i]+"<br>";
+    }
+  }
 };
 
 /**********************
@@ -152,6 +183,7 @@ context.addRobot = function tempAddRobot () {
 </head>
 <body>
 <div id="output"></div>
+<div id="progressterm" style="position:fixed;top:0;bottom:0;left:0;right:0;border:3px solid #0000ff;font-family:Monospace">progressterm</div>
 </body>
 </html>
 
