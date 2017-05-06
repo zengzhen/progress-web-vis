@@ -1,0 +1,157 @@
+<html>
+<head>
+   <script src="dat.gui.min.js"></script>
+<!--
+   <script type="text/javascript" src="roslib.min.js"></script>
+-->
+   <script type="text/javascript" src="roslib.min_newer.js"></script>
+
+<script type="text/javascript">
+    
+context = {
+};
+
+robots = [];
+robots_folders = [];
+robots_folders_root = [];
+
+robot_focus = 0;
+
+window.onload = function() {
+
+  gui = new dat.GUI();
+
+  ProgressVis = {ProgressVis : function (){window.open("http://progress.eecs.umich.edu")} };
+  gui.add(ProgressVis, 'ProgressVis');
+
+  gui.add(context, 'addRobot');
+
+  robots_folders_root = gui.addFolder('Robots');
+
+  // demos
+  //gui2 = new dat.GUI({ autoPlace: false });
+  //gui2.add(context, 'addTopic');
+  //gui2.add(context, 'addRobot');
+};
+
+/**********************
+newTopic
+**********************/
+function newTopic(robot) {
+  this.robot = robot;
+  this.name = "/joint_states";
+  this.type = "sensor_msgs/JointState";
+  this.display = true;
+
+  this.handleTopic = function(message) {
+    //console.log('new topic message');
+    document.getElementById("output").innerHTML = "Topic "+ this.name +" of type " + this.type + "<br>";
+    //document.getElementById("output").innerHTML += "Message at " + message.header.stamp.secs+'.'+message.header.stamp.nsecs + "<br>";
+    if ((this.type === "sensor_msgs/JointState")&&(message.name.length > 4)) {
+    document.getElementById("output").innerHTML += 'joint angles: '+'<br>';
+    for (var i=0;i<message.name.length;i++) {
+        document.getElementById("output").innerHTML += message.name[i]+' to '+message.position[i]+'<br>';
+      }
+      //console.log('kineval: roslib: new message at '+message.header.stamp.secs+'.'+message.header.stamp.nsecs);
+    }
+    else {
+      //var keys = Object.keys(message);
+      //for (x in keys) {
+      //  document.getElementById("output").innerHTML +=  keys[x]+" : "+message[keys[x]]+ "<br>";
+      //}
+      document.getElementById("output").innerHTML +=  JSON.stringify(message)+"<br>";
+    }
+  }
+
+  this.connectTopic = function () {
+    this.listener = new ROSLIB.Topic({
+      ros : this.robot.ros,
+      //name : '/joint_states_throttle',
+      name : this.name,
+      messageType : this.type
+    });
+
+    
+    this.listener.subscribe(this.handleTopic);
+
+  }
+
+
+}
+
+/**********************
+newRobot
+**********************/
+function newRobot () {
+  this.name = "unstated";
+  this.connection = "ws://fetch18.lan:9092";
+  this.status = false;
+  this.connect = function() {
+    this.ros = new ROSLIB.Ros({
+      url : this.connection
+    });
+    this.ros.on('connection', this.onConnection);
+    this.ros.on('error', function(error) {
+      console.log('kineval: roslib: error connecting to websocket server', error);
+    });
+    this.ros.on('close', function() {
+      console.log('kineval: roslib: connection to websocket server closed.');
+    });
+    //this.status = this.ros.status;
+  };
+
+  this.getTopicsCurrent = function(message) {
+    //console.log(JSON.stringify(message))
+    this.ros_topics = message;
+  };
+
+  this.onConnection = function() {
+      console.log('kineval: roslib: connect to websocket server.');
+      //for (var robot_focus=0;((robot_focus<robots.length)&&(robots_focus!==this.name));robot_focus++);
+      console.log(this);
+      this.ros.getTopics(this.getTopicsCurrent(message)); 
+    }
+
+
+  this.addTopic = function () {
+    console.log(this);
+    this.topics[this.topics.length] = new newTopic(this);
+
+    this.topics_folders[this.topics.length-1] = this.topics_folders_root.addFolder('Topic '+(this.topics.length-1));
+    this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'name');
+    this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'type');
+    //this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'display');
+    this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'connectTopic');
+
+    //this.connectTopic(this.topics[this.topics.length-1]);
+
+  }
+
+  this.topics = [];
+  this.topics_folders = [];
+  this.topics_folders_root = [];
+
+  this.folders = robots_folders_root.addFolder('Robot '+(robots.length));
+  this.folders.add(this, 'connect');
+  //this.folders.add(this, 'getTopics');
+  this.folders.add(this, 'addTopic');
+  this.folders.add(this, 'name');
+  this.folders.add(this, 'connection');
+  this.folders.add(this, 'status');
+  //this.folders.add(this.ros, 'isConnected');
+  this.topics_folders_root = this.folders.addFolder('Topics - '+this.name);
+
+};
+
+context.addRobot = function tempAddRobot () {
+  robots[robots.length] = new newRobot();
+}
+
+</script>
+
+</head>
+<body>
+<div id="output"></div>
+</body>
+</html>
+
