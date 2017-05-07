@@ -1,13 +1,16 @@
 <html>
 <head>
-   <script src="dat.gui.min.js"></script>
+   <script src="dat.gui.js"></script>
 <!--
+   <script src="dat.gui.min.js"></script>
    <script type="text/javascript" src="roslib.min.js"></script>
 -->
    <script type="text/javascript" src="roslib.min_newer.js"></script>
 
 <script type="text/javascript">
     
+version = "0.01";
+
 context = {
 };
 
@@ -17,7 +20,10 @@ robots_folders_root = [];
 
 robot_focus = 0;
 
-term = ['Welcome to ProgressVis','> '];
+progressterm = {};
+progressterm.buffer = ['ProgressVis v'+version,'> '];
+term = progressterm.buffer;
+//term = ['ProgressVis v'+version,'> '];
 
 window.onload = function() {
 
@@ -40,17 +46,25 @@ window.onload = function() {
 
   //context.initKeyEvents = function () {
     document.addEventListener('keydown', function(e) {context.handleKeydown(e); }, true);
+    //document.getElementById("progressterm").addEventListener('keydown', function(e) {context.handleKeydown(e); }, true);
   // }
+
+  progressterm.updateTerm();
+};
 
   context.handleKeydown = function(e) {
     if (e.keyCode === 13) {
       //document.getElementById("progressterm").innerHTML += "<br>";
+      progressterm.handleCommand(term[term.length-1].substring(2,term[term.length-1].length));
       term[term.length] = '> ';
     }
     else if (e.keyCode === 8) {
       //document.getElementById("progressterm").innerHTML += "<br>";
-      term[term.length-1] = term[term.length-1].substring(0,term[term.length-1].length-1);
+      if (term[term.length-1].length > 2)
+        term[term.length-1] = term[term.length-1].substring(0,term[term.length-1].length-1);
     }
+    // handle up/down keys else if (e.keyCode === 8) {
+    //}
     else if ((e.keyCode !== 32 )&&(e.keyCode < 47)) { }
     else {
       //document.getElementById("progressterm").innerHTML += e.keyCode;
@@ -58,12 +72,93 @@ window.onload = function() {
       term[term.length-1] = term[term.length-1] + e.key;
       //term[term.length-1] += e.keyCode;
     }
-    document.getElementById("progressterm").innerHTML='';
-    for(var i=term.length-1;i>0;i--) {
-      document.getElementById("progressterm").innerHTML += term[i]+"<br>";
+    progressterm.updateTerm();
+  }
+
+progressterm.logTerm = function (line) {
+  term[term.length] = line;
+  term[term.length] = '> ';
+}
+
+progressterm.handleCommand = function (cmd) {
+  var i,j;
+  console.log(cmd.split(" "));
+  argv = cmd.split(" ");
+  if (argv[0] === 'connect') {
+    if (argv.length < 3) {
+       term[term.length] = "progressterm: error: connect requires two arguments";
+       return;
+    }
+    addedrobot = context.addRobot();
+    addedrobot.name = argv[1];
+    //addedrobot.connection = argv[2];
+    addedrobot.connection = "ws://"+argv[2];
+    addedrobot.connect();
+  }
+  else if (argv[0] === 'who') {
+    var tempstr = '';
+    for (i=0;i<robots.length;i++) tempstr += robots[i].name+" at "+robots[i].connection+"<br>";
+    term[term.length] = tempstr;
+  }
+  else if (argv[0] === 'subscribe') {
+    if (argv.length < 3) {
+       term[term.length] = "progressterm: error: subscribe requires two arguments";
+       return;
+    }
+    for (i=0;((i<robots.length)&&(robots[i].name!==argv[1]));i++) console.log(i+" "+robots[i].name+" "+argv[1]);
+    if (i >= robots.length) {
+       term[term.length] = "progressterm: error: robot not found";
+       return;
+    }
+    for (j=0;((j<robots[i].topics.length)&&(robots[i].topics[j].name!==argv[2]));j++); //console.log(i+" "+robots[i].name+" "+argv[2]);
+    if (j >= robots[i].topics.length) {
+      addedtopic = robots[i].addTopic();
+      addedtopic.name = argv[2];
+      if (argv[2] === 'joint_states')
+        addedtopic.type = "sensor_msgs/JointState";
+      else if (argv[2] === 'base_scan')
+        addedtopic.type = "sensor_msgs/LaserScan";
+      else
+        addedtopic.type = "sensor_msgs/JointState";
+      addedtopic.connectTopic();
+    }
+    else {
+      addedtopic = robots[i].topics[j].subscribeTopic();
     }
   }
+  else if (argv[0] === 'unsubscribe') {
+    if (argv.length < 3) {
+       term[term.length] = "progressterm: error: unsubscribe requires two arguments";
+       return;
+    }
+    for (i=0;((i<robots.length)&&(robots[i].name!==argv[1]));i++) console.log(i+" "+robots[i].name+" "+argv[1]);
+    if (i >= robots.length) {
+       term[term.length] = "progressterm: error: robot not found";
+       return;
+    }
+    console.log(i);
+    console.log(robots[i]);
+    for (j=0;((j<robots[i].topics.length)&&(robots[i].topics[j].name!==argv[2]));j++); //console.log(i+" "+robots[i].name+" "+argv[2]);
+    if (j >= robots[i].topics.length) {
+       term[term.length] = "progressterm: error: topic not found";
+       return;
+    }
+    robots[i].topics[j].unsubscribeTopic();
+  }
+ 
+    //document.getElementById("progressterm").innerHTML='';
+    //for(var i=term.length-1;i>=0;i--) {
+    //  document.getElementById("progressterm").innerHTML += term[i]+"<br>";
+    //}
 };
+
+progressterm.updateTerm = function () {
+    document.getElementById("progressterm").innerHTML='';
+    for(var i=term.length-1;i>=0;i--) {
+      document.getElementById("progressterm").innerHTML += term[i]+"<br>";
+    }
+};
+
 
 /**********************
 newTopic
@@ -95,18 +190,29 @@ function newTopic(robot) {
   }
 
   this.connectTopic = function () {
-    this.listener = new ROSLIB.Topic({
-      ros : this.robot.ros,
-      //name : '/joint_states_throttle',
-      name : this.name,
-      messageType : this.type
-    });
-
+    if (typeof this.listener === 'undefined') {
+      this.listener = new ROSLIB.Topic({
+        ros : this.robot.ros,
+        //name : '/joint_states_throttle',
+        name : this.name,
+        messageType : this.type
+      });
+    }
     
-    this.listener.subscribe(this.handleTopic);
-
+    //this.listener.subscribe(this.handleTopic);
+    this.subscribeTopic();
   }
 
+  this.subscribeTopic = function () {
+    this.listener.subscribe(this.handleTopic);
+  }
+
+  this.unsubscribeTopic = function () {
+    this.listener.unsubscribe();
+  }
+
+
+    return this;
 
 }
 
@@ -138,6 +244,8 @@ function newRobot () {
 
   this.onConnection = function() {
       console.log('kineval: roslib: connect to websocket server.');
+      console.log(this);
+      progressterm.logTerm('connected to '+ this.name);
       //for (var robot_focus=0;((robot_focus<robots.length)&&(robots_focus!==this.name));robot_focus++);
       console.log(this);
       this.ros.getTopics(this.getTopicsCurrent(message)); 
@@ -149,13 +257,13 @@ function newRobot () {
     this.topics[this.topics.length] = new newTopic(this);
 
     this.topics_folders[this.topics.length-1] = this.topics_folders_root.addFolder('Topic '+(this.topics.length-1));
-    this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'name');
-    this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'type');
-    //this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'display');
-    this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'connectTopic');
+    this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'name').listen();
+    this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'type').listen();
+    //this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'display').listen();
+    this.topics_folders[this.topics.length-1].add(this.topics[this.topics.length-1], 'connectTopic').listen();
 
     //this.connectTopic(this.topics[this.topics.length-1]);
-
+    return this.topics[this.topics.length-1];
   }
 
   this.topics = [];
@@ -163,19 +271,20 @@ function newRobot () {
   this.topics_folders_root = [];
 
   this.folders = robots_folders_root.addFolder('Robot '+(robots.length));
-  this.folders.add(this, 'connect');
+  this.folders.add(this, 'connect').listen();
   //this.folders.add(this, 'getTopics');
   this.folders.add(this, 'addTopic');
-  this.folders.add(this, 'name');
-  this.folders.add(this, 'connection');
-  this.folders.add(this, 'status');
-  //this.folders.add(this.ros, 'isConnected');
+  this.folders.add(this, 'name').listen();
+  this.folders.add(this, 'connection').listen();
+  this.folders.add(this, 'status').listen();
+  //this.folders.add(this.ros, 'isConnected').listen();
   this.topics_folders_root = this.folders.addFolder('Topics - '+this.name);
 
 };
 
 context.addRobot = function tempAddRobot () {
   robots[robots.length] = new newRobot();
+  return robots[robots.length-1];
 }
 
 </script>
