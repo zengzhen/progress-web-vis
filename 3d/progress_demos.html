@@ -6,22 +6,24 @@
     <script type="text/javascript" src="js/roslib.min.js"></script>    
     
     <script src="js/three.min.js.76"></script>
+    <script src="js/Projector.js"></script>
     <script src="js/OrbitControls.js"></script>
     <script src="js/stats.min.js"></script>
     <script src="js/require.js"></script>
     <script src="js/dat.gui.min.js"></script>
-    <script src="js/kineval_matrix.js"></script>
-    <script src="js/kineval_quaternion.js"></script>
-    
+    <script src="js/ros3d.js"></script>
+    <script src="js/STLLoader.js.roswebtools"></script>
+    <script src="js/ColladaLoader.js"></script>
+    <script src="js/ColladaLoader2.js"></script>
 
     <link rel="stylesheet" href="demo/style.css">
     
     <script src="demo/init_params.js"></script> 
     <script src="demo/init_rosbridge.js"></script>
-    <script src="demo/init_canvas_point_cloud.js"></script>
-    <script src="demo/init_canvas_occupancy_grid.js"></script>
+    <script src="demo/init_canvas.js"></script>
     <script src="demo/init_websocket.js"></script>
     <script src="demo/occupancy_grid.js"></script>
+    <script src="demo/init_robot.js"></script>
     
     <title>Progress Demos</title>
     
@@ -33,37 +35,21 @@
     // the init function is called first to setup the spring simulation
     function init() {
         init_params();
-        init_canvas_point_cloud();
-        init_canvas_occupancy_grid();
         init_rosbridge();
-        init_websocket();
+        init_robot();
+        init_canvas();
+        init_websocket();   
         
-        document.addEventListener('keydown', function(e) {handleKeydown(e.keyCode); }, true);   
-        
-//         animate();
+        document.addEventListener('keydown', function(e) {handleKeydown(e.keyCode); }, true);
     }
-    
-//     function animate() {     
-// 
-//         // the requestAnimationFrame function requests that the animate function
-//         //   be called again in the near future
-//         requestAnimationFrame(animate);
-//         
-//         render();
-//         stats.update();
-//     }
 
     </script>
 
 </head>
 
-<!--<body>
-    <div style="position: relative;">
-            
-        <canvas id="lpm_layer" width="1500" height="1500"
-        style="position: absolute; left: 0px; top: 100px; z-index: 1;"></canvas>
-        
-    </div>
-</body>-->
+<body>
+  <div id="urdf"></div>
+</body>
+
 
 </html>

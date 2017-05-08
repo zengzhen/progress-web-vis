@@ -1,4 +1,4 @@
-function init_canvas_point_cloud(){
+function init_canvas(){
     'use strict';
     
     var container, mouseX = 0, mouseY = 0, controls;
@@ -8,7 +8,7 @@ function init_canvas_point_cloud(){
 
     function init() {
         controls = new THREE.OrbitControls( camera );
-        controls.addEventListener( 'change', render );    
+        controls.addEventListener( 'change', render );  
 
         container = document.createElement('div');
         document.body.appendChild(container);
@@ -38,23 +38,47 @@ function init_canvas_point_cloud(){
             currentPointCloud.geometry.attributes.color.needsUpdate = true;
             
             points_update = false;
-            
-            var d = new Date();
-//             console.log("before render "+pointcloud_msg.header.stamp.secs+":"+pointcloud_msg.header.stamp.nsecs+"  "+d.getTime())
-            
-            render();
-        
-            d = new Date();
-            time_render_finished = d.getTime();
-//             console.log("after render " + time_render_finished)
         }
+        
+        var robot_model = scene.getObjectByName( "robot_model" );
+        if(robot_model!=undefined)
+        {            
+            var temp_robot_pose = new ROSLIB.Pose(robot_pose);
+            temp_robot_pose.applyTransform(orbit_tf);
+            
+            robot_model.position.x = temp_robot_pose.position.x;
+            robot_model.position.y = temp_robot_pose.position.y;            
+            robot_model.position.z = temp_robot_pose.position.z;        
+            
+            var quaternion = new THREE.Quaternion(temp_robot_pose.orientation.x, temp_robot_pose.orientation.y, temp_robot_pose.orientation.z, temp_robot_pose.orientation.w);
+            robot_model.rotation.setFromQuaternion(quaternion, 'XYZ');
+        }
+        
+        var robot_tf = new ROSLIB.Transform();
+        robot_tf.translation = robot_pose.position;
+        robot_tf.rotation = robot_pose.orientation;
+        
+        var pointcloud_pose = new ROSLIB.Pose();
+        pointcloud_pose.applyTransform(tf_point_cloud);
+        pointcloud_pose.applyTransform(robot_tf);
+        pointcloud_pose.applyTransform(orbit_tf);
+        
+        var rgbd_stream = scene.getObjectByName( "rgbd_stream" );
+        if(rgbd_stream!=undefined)
+        {
+            rgbd_stream.position.x = pointcloud_pose.position.x;
+            rgbd_stream.position.y = pointcloud_pose.position.y;
+            rgbd_stream.position.z = pointcloud_pose.position.z;
+            
+            var quaternion = new THREE.Quaternion(pointcloud_pose.orientation.x, pointcloud_pose.orientation.y, pointcloud_pose.orientation.z, pointcloud_pose.orientation.w);
+            rgbd_stream.rotation.setFromQuaternion(quaternion);
+        }
+        
+        render();
         
     }
 
     function onWindowResize() {
-
-        windowHalfX = window.innerWidth / 2;
-        windowHalfY = window.innerHeight / 2;
 
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -77,8 +101,6 @@ function parsePointCloud(){
 
     var buffer;
     if(pointcloud_msg.data.buffer){
-//         console.log("getting object buffer");
-//             buffer = pointcloud_msg.data.buffer.buffer;
         buffer = JSON.parse(JSON.stringify(pointcloud_msg.data.buffer.buffer));
     }else{
         buffer = Uint8Array.from(decode64(pointcloud_msg.data)).buffer;
@@ -95,9 +117,9 @@ function parsePointCloud(){
         var g = (rgb >> 8) & 0x0000ff;
         var b = (rgb) & 0x0000ff;
         
-        positions[i*3] = -pt['x'];
-        positions[i*3+1] = -pt['y'];
-        positions[i*3+2] = -pt['z'];
+        positions[i*3] = pt['x'];
+        positions[i*3+1] = pt['y'];
+        positions[i*3+2] = pt['z'];
         
         colors[i*3] = r/255;
         colors[i*3+1] = g/255;

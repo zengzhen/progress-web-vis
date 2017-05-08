@@ -3,7 +3,8 @@ function init_rosbridge() {
 	
 // rosbridge_websocket connections
 ros = new ROSLIB.Ros({
-    url: 'ws://fetch18:9092'
+    url: 'ws://localhost:9092'
+//     url : 'ws://demo.robotwebtools.org:9090'
 }); 
 
 ros.on('connection', function() {
@@ -21,30 +22,30 @@ ros.on('close', function() {
 point_cloud_listener = new ROSLIB.Topic({
     ros : ros,
     name : '/downsampled_points_throttle',
-//     name : '/head_camera/depth_downsample/points',
-//     name : '/head_camera/depth_registered/points',
     messageType : 'sensor_msgs/PointCloud2',
     queue_length: 0
 });
 
 point_cloud_listener.subscribe(function(message) {	
     
-    // copy point cloud
-//     console.log("received point cloud msg: %d x %d", message.width, message.height);
-    
-    var d = new Date();
-    var js_time = d.getTime();
-//     console.log("callback "+message.header.stamp.secs+":"+message.header.stamp.nsecs+"  "+js_time);
-    
-//     var num_nesc_digits = message.header.stamp.nsecs.toString().length;
-//     var point_cloud_msg_time = message.header.stamp.secs*1e3 + message.header.stamp.nsecs*Math.pow(10, -num_nesc_digits);
-
-    
+    // copy point cloud    
     pointcloud_msg = JSON.parse(JSON.stringify(message));
     points_update = true;
     received_point_cloud = true;
-//     sleep(200);
 });
+
+tfClient = new ROSLIB.TFClient({
+    ros : ros,
+    angularThres : 0.01,
+    transThres : 0.01,
+    rate : 10.0,
+    fixedFrame: '/base_link'
+});
+
+//head_camera_rgb_optical_frame
+tfClient.subscribe("/head_camera_rgb_optical_frame", function(msg) {
+    tf_point_cloud = new ROSLIB.Transform(msg);
+  });
 
 }
 
