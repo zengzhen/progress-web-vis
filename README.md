@@ -13,12 +13,10 @@ web front-end for robot demos: [Youtube Video](https://www.youtube.com/watch?v=l
 
 ``python cors_server.py``
 ### ssh on robot
-fetch18: ``rosrun cloud_server pointcloud_downsample``
-
-fetch7 : ``rosrun rgbd_grabber pointcloud_downsample``
+``rosrun cloud_server pointcloud_downsample``
 
 ``rosrun topic_tools throttle messages /downsampled_points 1``
-### vulcan nav
-run vulcan nav web as instructed in github/progress-demos 
+### 2D mapping
+we have a private 2D mapping module running on the robot, but you can choose to use any public ros package for 2D occupancy mapping and modify the web visualization interface accordingly 
 ### browser
 open demo_web/3d/progress_demos.html
