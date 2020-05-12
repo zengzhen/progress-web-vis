@@ -1,7 +1,5 @@
 # demo_web
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=ltS5nVfyOWA
-" target="_blank"><img src="http://img.youtube.com/vi/ltS5nVfyOWA/2.jpg" 
-alt="web front-end for robot demos" width="480" height="360" border="10" /></a>
+web front-end for robot demos: [Youtube Video](https://www.youtube.com/watch?v=ltS5nVfyOWA)
 
 ## Run
 ### on local workstation
