@@ -1,5 +1,7 @@
 # demo_web
-web front-end for progress demons
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=ltS5nVfyOWA
+" target="_blank"><img src="http://img.youtube.com/vi/ltS5nVfyOWA/2.jpg" 
+alt="web front-end for robot demos" width="480" height="360" border="10" /></a>
 
 ## Run
 ### on local workstation
